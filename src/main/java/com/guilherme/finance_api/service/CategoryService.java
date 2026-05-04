@@ -2,6 +2,7 @@ package com.guilherme.finance_api.service;
 
 
 import com.guilherme.finance_api.entity.Category;
+import com.guilherme.finance_api.exception.ResourceNotFoundException;
 import com.guilherme.finance_api.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +23,7 @@ public class CategoryService {
 
     public Category findById(Long id) {
         return categoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
     }
 
     public Category save(Category category) {
@@ -30,6 +31,9 @@ public class CategoryService {
     }
 
     public void delete(Long id) {
+        if (!categoryRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Category not found");
+        }
         categoryRepository.deleteById(id);
     }
 }
