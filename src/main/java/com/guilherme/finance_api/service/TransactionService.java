@@ -1,20 +1,23 @@
 package com.guilherme.finance_api.service;
 
 import com.guilherme.finance_api.entity.Transaction;
+import com.guilherme.finance_api.entity.User;
 import com.guilherme.finance_api.exception.ResourceNotFoundException;
 import com.guilherme.finance_api.repository.TransactionRepository;
+import com.guilherme.finance_api.repository.UserRepository;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Data
 @Service
+@RequiredArgsConstructor
 public class TransactionService {
-
     private final TransactionRepository transactionRepository;
-
-    public TransactionService(TransactionRepository transactionRepository) {
-        this.transactionRepository = transactionRepository;
-    }
+    private final UserRepository userRepository;
 
     public List<Transaction> findAll() {
         return transactionRepository.findAll();
@@ -26,6 +29,14 @@ public class TransactionService {
     }
 
     public Transaction save(Transaction transaction) {
+        String email = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        transaction.setUser(user);
         return transactionRepository.save(transaction);
     }
 
