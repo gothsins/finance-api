@@ -1,5 +1,6 @@
 package com.guilherme.finance_api.service;
 
+import com.guilherme.finance_api.dto.TransactionResponse;
 import com.guilherme.finance_api.entity.Transaction;
 import com.guilherme.finance_api.entity.User;
 import com.guilherme.finance_api.exception.ResourceNotFoundException;
@@ -11,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @Service
@@ -19,25 +21,40 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
 
-    public List<Transaction> findAll() {
-        return transactionRepository.findAll();
+    public List<TransactionResponse> findAll() {
+        return transactionRepository.findAll()
+                .stream()
+                .map(transaction -> toResponse(transaction))
+                .collect(Collectors.toList());
     }
 
-    public Transaction findById(Long id) {
-        return transactionRepository.findById(id)
+    public TransactionResponse findById(Long id) {
+        Transaction transaction = transactionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
+        return toResponse(transaction);
     }
 
-    public Transaction save(Transaction transaction) {
+    private TransactionResponse toResponse(Transaction transaction) {
+        return new TransactionResponse(
+                transaction.getId(),
+                transaction.getDescription(),
+                transaction.getAmount(),
+                transaction.getDate(),
+                transaction.getType(),
+                transaction.getUser().getEmail(),
+                transaction.getCategory() != null ? transaction.getCategory().getName() : null
+        );
+    }
+
+    public TransactionResponse save(Transaction transaction) {
         String email = SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getName();
-
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
         transaction.setUser(user);
-        return transactionRepository.save(transaction);
+        Transaction savedTransaction = transactionRepository.save(transaction);
+        return toResponse(savedTransaction);
     }
 
     public void delete(Long id) {
