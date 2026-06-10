@@ -23,6 +23,9 @@ public class AuthService {
     public AuthResponse register(AuthRequest request) {
         User user = new User();
         user.setEmail(request.getEmail());
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already in use");
+        }
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         userRepository.save(user);
         String token = jwtService.generateToken(user.getEmail());

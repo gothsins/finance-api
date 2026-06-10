@@ -1,5 +1,6 @@
 package com.guilherme.finance_api.controller;
 
+import com.guilherme.finance_api.dto.TransactionResponse;
 import com.guilherme.finance_api.entity.Transaction;
 import com.guilherme.finance_api.repository.TransactionRepository;
 import com.guilherme.finance_api.service.TransactionService;
@@ -20,18 +21,18 @@ public class TransactionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Transaction>> findAll() {
+    public ResponseEntity<List<TransactionResponse>> findAll() {
         return ResponseEntity.ok(transactionService.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Transaction> findById(@PathVariable Long id) {
+    public ResponseEntity<TransactionResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(transactionService.findById(id));
     }
 
     @PostMapping
-    public ResponseEntity<Transaction> save(@RequestBody Transaction transaction) {
-        Transaction savedTransaction = transactionService.save(transaction);
+    public ResponseEntity<TransactionResponse> save(@RequestBody Transaction transaction) {
+        TransactionResponse savedTransaction = transactionService.save(transaction);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedTransaction);
     }
 
