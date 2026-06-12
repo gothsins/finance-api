@@ -13,4 +13,10 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse(404, ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
+
+    @ExceptionHandler(EmailAlreadyInUseException.class)
+    public ResponseEntity<ErrorResponse> handleEmailAlreadyInUse(EmailAlreadyInUseException ex) {
+        ErrorResponse error = new ErrorResponse(409, ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
 }

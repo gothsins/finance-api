@@ -3,6 +3,7 @@ package com.guilherme.finance_api.service;
 import com.guilherme.finance_api.dto.AuthRequest;
 import com.guilherme.finance_api.dto.AuthResponse;
 import com.guilherme.finance_api.entity.User;
+import com.guilherme.finance_api.exception.EmailAlreadyInUseException;
 import com.guilherme.finance_api.repository.UserRepository;
 import com.guilherme.finance_api.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -21,11 +22,11 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
 
     public AuthResponse register(AuthRequest request) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new EmailAlreadyInUseException("Email already in use");
+        }
         User user = new User();
         user.setEmail(request.getEmail());
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already in use");
-        }
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         userRepository.save(user);
         String token = jwtService.generateToken(user.getEmail());
