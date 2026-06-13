@@ -1,9 +1,11 @@
 package com.guilherme.finance_api.service;
 
 import com.guilherme.finance_api.dto.TransactionResponse;
+import com.guilherme.finance_api.entity.Category;
 import com.guilherme.finance_api.entity.Transaction;
 import com.guilherme.finance_api.entity.User;
 import com.guilherme.finance_api.exception.ResourceNotFoundException;
+import com.guilherme.finance_api.repository.CategoryRepository;
 import com.guilherme.finance_api.repository.TransactionRepository;
 import com.guilherme.finance_api.repository.UserRepository;
 import lombok.Data;
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
 public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
 
     public List<TransactionResponse> findAll() {
         return transactionRepository.findAll()
@@ -52,6 +55,9 @@ public class TransactionService {
                 .getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        Category category = categoryRepository.findById(transaction.getCategory().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+        transaction.setCategory(category);
         transaction.setUser(user);
         Transaction savedTransaction = transactionRepository.save(transaction);
         return toResponse(savedTransaction);
