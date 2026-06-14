@@ -4,6 +4,7 @@ import com.guilherme.finance_api.dto.TransactionResponse;
 import com.guilherme.finance_api.entity.Transaction;
 import com.guilherme.finance_api.repository.TransactionRepository;
 import com.guilherme.finance_api.service.TransactionService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +32,7 @@ public class TransactionController {
     }
 
     @PostMapping
-    public ResponseEntity<TransactionResponse> save(@RequestBody Transaction transaction) {
+    public ResponseEntity<TransactionResponse> save(@Valid @RequestBody Transaction transaction) {
         TransactionResponse savedTransaction = transactionService.save(transaction);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedTransaction);
     }
