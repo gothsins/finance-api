@@ -2,6 +2,7 @@ package com.guilherme.finance_api.controller;
 
 
 import com.guilherme.finance_api.entity.Category;
+import com.guilherme.finance_api.exception.ResourceNotFoundException;
 import com.guilherme.finance_api.service.CategoryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,10 @@ public class CategoryController {
     @GetMapping("/{id}")
     public ResponseEntity<Category> findById(@PathVariable Long id) {
             return ResponseEntity.ok(categoryService.findById(id));
+    }
+    @PutMapping("/{id}")
+    public ResponseEntity<Category> update(@PathVariable Long id, @RequestBody Category updatedCategory) {
+        return ResponseEntity.ok(categoryService.update(id, updatedCategory));
     }
 
     @PostMapping

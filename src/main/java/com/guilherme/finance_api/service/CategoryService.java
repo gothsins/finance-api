@@ -26,6 +26,13 @@ public class CategoryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
     }
 
+    public Category update(Long id, Category updatedCategory) {
+        Category categoryExist = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+        categoryExist.setName(updatedCategory.getName());
+        return categoryRepository.save(categoryExist);
+    }
+
     public Category save(Category category) {
         return categoryRepository.save(category);
     }
