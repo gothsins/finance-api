@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: finance-api
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/finance-api
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      JWT_SECRET: 5b6f8d2a1e4c7f9b3d0e2a5c8f1b4d7e9a2c5f8b1d4e7a0c3f6b9d2e5a8c1f4
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
