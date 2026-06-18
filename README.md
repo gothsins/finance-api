@@ -1,5 +1,12 @@
 # finance-api
 
+![Java](https://img.shields.io/badge/Java-21-orange?logo=openjdk)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-brightgreen?logo=springboot)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?logo=postgresql)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker)
+![JWT](https://img.shields.io/badge/Auth-JWT-black?logo=jsonwebtokens)
+![Swagger](https://img.shields.io/badge/Docs-Swagger-85EA2D?logo=swagger)
+
 API REST para controle de finanças pessoais, desenvolvida em **Java 17** com **Spring Boot**. Permite que cada usuário gerencie suas próprias transações financeiras e categorias, com autenticação segura via **JWT**.
 
 ## Visão geral
@@ -10,6 +17,9 @@ O projeto foi estruturado em camadas (Controller, Service, Repository) seguindo 
 - Persistência de dados relacionais com **Spring Data JPA**
 - Tratamento global de exceções (`GlobalExceptionHandler`) para respostas de erro padronizadas
 - Uso de **DTOs** para desacoplar a API da camada de persistência
+- Validação de entrada com **Bean Validation**
+- Testes unitários com **JUnit 5 + Mockito**
+- Containerização completa com **Docker** e **Docker Compose**
 
 ## Stack
 
@@ -20,6 +30,9 @@ O projeto foi estruturado em camadas (Controller, Service, Repository) seguindo 
 - PostgreSQL
 - Maven
 - Lombok
+- JUnit 5 / Mockito
+- Springdoc OpenAPI (Swagger)
+- Docker / Docker Compose
 
 ## Modelo de dados
 
@@ -79,12 +92,21 @@ erDiagram
 
 > Todos os endpoints (exceto `/auth/**`) exigem um token JWT válido no header `Authorization: Bearer <token>`.
 
+## Documentação interativa (Swagger)
+
+Com a aplicação em execução, a documentação completa da API fica disponível em:
+
+http://localhost:8080/swagger-ui/index.html
+
+É possível autenticar diretamente pela interface: gere um token em `/auth/login`, clique em **Authorize** e cole o token para testar os endpoints protegidos.
+
 ## Tratamento de exceções
 
 A API utiliza um `@RestControllerAdvice` global (`GlobalExceptionHandler`) para capturar exceções customizadas e retornar respostas de erro padronizadas (`ErrorResponse`):
 
 - `ResourceNotFoundException` — recurso não encontrado (404)
 - `EmailAlreadyInUseException` — tentativa de registro com e-mail já cadastrado (409)
+- Erros de validação (`@Valid`) — campos inválidos no corpo da requisição (400)
 
 ## Segurança
 
@@ -97,7 +119,29 @@ A autenticação é feita via JWT, com os seguintes componentes:
 
 Senhas são armazenadas com hash via `BCryptPasswordEncoder`.
 
+## Testes
+
+O projeto conta com testes unitários utilizando **JUnit 5** e **Mockito**, cobrindo os principais cenários de sucesso e erro da camada de serviço.
+
+```bash
+./mvnw test
+```
+
 ## Como executar
+
+### Opção 1 — Docker (recomendado)
+
+Com Docker e Docker Compose instalados, basta um único comando para rodar a API e o banco de dados PostgreSQL juntos, sem precisar instalar nada manualmente:
+
+```bash
+git clone https://github.com/gothsins/finance-api.git
+cd finance-api
+docker compose up --build
+```
+
+A API estará disponível em `http://localhost:8080`.
+
+### Opção 2 — Execução local
 
 ```bash
 git clone https://github.com/gothsins/finance-api.git
