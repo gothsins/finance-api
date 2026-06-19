@@ -1,9 +1,11 @@
 package com.guilherme.finance_api.controller;
 
 
+import com.guilherme.finance_api.dto.CategoryRequest;
 import com.guilherme.finance_api.entity.Category;
 import com.guilherme.finance_api.exception.ResourceNotFoundException;
 import com.guilherme.finance_api.service.CategoryService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,13 +32,13 @@ public class CategoryController {
             return ResponseEntity.ok(categoryService.findById(id));
     }
     @PutMapping("/{id}")
-    public ResponseEntity<Category> update(@PathVariable Long id, @RequestBody Category updatedCategory) {
-        return ResponseEntity.ok(categoryService.update(id, updatedCategory));
+    public ResponseEntity<Category> update(@PathVariable Long id, @Valid @RequestBody CategoryRequest request) {
+        return ResponseEntity.ok(categoryService.update(id, request));
     }
 
     @PostMapping
-    public ResponseEntity<Category> save(@RequestBody Category category) {
-        Category savedCategory = categoryService.save(category);
+    public ResponseEntity<Category> save(@Valid @RequestBody CategoryRequest request) {
+        Category savedCategory = categoryService.save(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedCategory);
     }
 

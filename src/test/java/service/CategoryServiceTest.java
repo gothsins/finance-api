@@ -1,5 +1,6 @@
 package service;
 
+import com.guilherme.finance_api.dto.CategoryRequest;
 import com.guilherme.finance_api.entity.Category;
 import com.guilherme.finance_api.exception.ResourceNotFoundException;
 import com.guilherme.finance_api.repository.CategoryRepository;
@@ -15,6 +16,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -39,13 +41,16 @@ public class CategoryServiceTest {
     @Test
     void save_ShouldReturnSavedCategory() {
         // Arrange
+        CategoryRequest request = new CategoryRequest();
+        request.setName("Food");
+
         Category category = new Category();
         category.setName("Food");
 
-        when(categoryRepository.save(category)).thenReturn(category);
+        when(categoryRepository.save(any(Category.class))).thenReturn(category);
 
         // Act
-        Category result = categoryService.save(category);
+        Category result = categoryService.save(request);
 
         // Assert
         assertEquals("Food", result.getName());

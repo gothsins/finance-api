@@ -1,6 +1,7 @@
 package com.guilherme.finance_api.service;
 
 
+import com.guilherme.finance_api.dto.CategoryRequest;
 import com.guilherme.finance_api.entity.Category;
 import com.guilherme.finance_api.exception.ResourceNotFoundException;
 import com.guilherme.finance_api.repository.CategoryRepository;
@@ -26,14 +27,16 @@ public class CategoryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
     }
 
-    public Category update(Long id, Category updatedCategory) {
+    public Category update(Long id, CategoryRequest request) {
         Category categoryExist = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
-        categoryExist.setName(updatedCategory.getName());
+        categoryExist.setName(request.getName());
         return categoryRepository.save(categoryExist);
     }
 
-    public Category save(Category category) {
+    public Category save(CategoryRequest request) {
+        Category category = new Category();
+        category.setName(request.getName());
         return categoryRepository.save(category);
     }
 

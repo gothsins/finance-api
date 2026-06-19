@@ -1,6 +1,8 @@
 package com.guilherme.finance_api.controller;
 
+import com.guilherme.finance_api.dto.TransactionRequest;
 import com.guilherme.finance_api.dto.TransactionResponse;
+import com.guilherme.finance_api.entity.Category;
 import com.guilherme.finance_api.entity.Transaction;
 import com.guilherme.finance_api.repository.TransactionRepository;
 import com.guilherme.finance_api.service.TransactionService;
@@ -31,9 +33,14 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.findById(id));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<TransactionResponse> update(@PathVariable Long id,@Valid @RequestBody TransactionRequest request) {
+        return ResponseEntity.ok(transactionService.update(id, request));
+    }
+
     @PostMapping
-    public ResponseEntity<TransactionResponse> save(@Valid @RequestBody Transaction transaction) {
-        TransactionResponse savedTransaction = transactionService.save(transaction);
+    public ResponseEntity<TransactionResponse> save(@Valid @RequestBody TransactionRequest request) {
+        TransactionResponse savedTransaction = transactionService.save(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedTransaction);
     }
 

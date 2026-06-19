@@ -1,5 +1,6 @@
 package com.guilherme.finance_api.service;
 
+import com.guilherme.finance_api.dto.TransactionRequest;
 import com.guilherme.finance_api.dto.TransactionResponse;
 import com.guilherme.finance_api.entity.Category;
 import com.guilherme.finance_api.entity.Transaction;
@@ -49,16 +50,38 @@ public class TransactionService {
         );
     }
 
-    public TransactionResponse save(Transaction transaction) {
+    public TransactionResponse update(Long id, TransactionRequest request) {
+        Transaction transactionExist = transactionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
+        transactionExist.setDescription(request.getDescription());
+        transactionExist.setAmount(request.getAmount());
+        transactionExist.setDate(request.getDate());
+        transactionExist.setType(request.getType());
+        transactionExist.setCategory(categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found")));
+        Transaction savedTransaction = transactionRepository.save(transactionExist);
+        return toResponse(savedTransaction);
+    }
+
+    public TransactionResponse save(TransactionRequest request) {
+        Transaction transaction = new Transaction();
+        transaction.setDescription(request.getDescription());
+        transaction.setAmount(request.getAmount());
+        transaction.setDate(request.getDate());
+        transaction.setType(request.getType());
+
         String email = SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        Category category = categoryRepository.findById(transaction.getCategory().getId())
+
+        Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
-        transaction.setCategory(category);
+
         transaction.setUser(user);
+        transaction.setCategory(category);
+
         Transaction savedTransaction = transactionRepository.save(transaction);
         return toResponse(savedTransaction);
     }
