@@ -16,10 +16,10 @@ O projeto foi estruturado em camadas (Controller, Service, Repository) seguindo 
 - Autenticação e autorização stateless com **Spring Security + JWT**
 - Persistência de dados relacionais com **Spring Data JPA**
 - Tratamento global de exceções (`GlobalExceptionHandler`) para respostas de erro padronizadas
-- Uso de **DTOs** para desacoplar a API da camada de persistência
 - Validação de entrada com **Bean Validation**
 - Testes unitários com **JUnit 5 + Mockito**
 - Containerização completa com **Docker** e **Docker Compose**
+- Uso de **DTOs** de entrada (`Request`) e saída (`Response`) para desacoplar a API da camada de persistência e expor apenas os dados necessários
 
 ## Stack
 
@@ -79,6 +79,7 @@ erDiagram
 | GET | `/categories` | Lista as categorias do usuário autenticado |
 | GET | `/categories/{id}` | Busca uma categoria específica |
 | POST | `/categories` | Cria uma nova categoria |
+| PUT | `/categories/{id}` | Atualiza uma categoria existente |
 | DELETE | `/categories/{id}` | Remove uma categoria |
 
 ### Transações (`/transactions`)
@@ -88,6 +89,7 @@ erDiagram
 | GET | `/transactions` | Lista as transações do usuário autenticado |
 | GET | `/transactions/{id}` | Busca uma transação específica |
 | POST | `/transactions` | Cria uma nova transação |
+| PUT | `/transactions/{id}` | Atualiza uma transação existente |
 | DELETE | `/transactions/{id}` | Remove uma transação |
 
 > Todos os endpoints (exceto `/auth/**`) exigem um token JWT válido no header `Authorization: Bearer <token>`.
@@ -156,4 +158,4 @@ Configure as variáveis de ambiente do banco de dados (veja `application-example
 
 ## Status do projeto
 
-Em desenvolvimento ativo — próximas melhorias incluem endpoints de atualização (`PUT`/`PATCH`) para transações e categorias, e relatórios financeiros agregados.
+CRUD completo para `Category` e `Transaction`, com autenticação JWT, validações, testes unitários, documentação Swagger e containerização Docker. Próximas melhorias incluem filtros de busca (por categoria, período, tipo) e endpoint de resumo financeiro agregado.
