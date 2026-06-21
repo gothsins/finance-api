@@ -1,17 +1,23 @@
 package com.guilherme.finance_api.controller;
 
+import com.guilherme.finance_api.dto.TransactionFilter;
 import com.guilherme.finance_api.dto.TransactionRequest;
 import com.guilherme.finance_api.dto.TransactionResponse;
-import com.guilherme.finance_api.entity.Category;
-import com.guilherme.finance_api.entity.Transaction;
-import com.guilherme.finance_api.repository.TransactionRepository;
+import com.guilherme.finance_api.entity.TransactionType;
 import com.guilherme.finance_api.service.TransactionService;
 import jakarta.validation.Valid;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import org.springframework.data.domain.Pageable;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/transactions")
@@ -24,8 +30,18 @@ public class TransactionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TransactionResponse>> findAll() {
-        return ResponseEntity.ok(transactionService.findAll());
+    public ResponseEntity<Page<TransactionResponse>> findAll(
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) TransactionType type,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) BigDecimal minValue,
+            @RequestParam(required = false) BigDecimal maxValue,
+            @RequestParam(required = false) String description,
+            @ParameterObject @PageableDefault(size = 10, sort = "date", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        TransactionFilter filter = new TransactionFilter(categoryId, type, startDate, endDate, minValue, maxValue, description);
+        return ResponseEntity.ok(transactionService.findAll(filter, pageable));
     }
 
     @GetMapping("/{id}")

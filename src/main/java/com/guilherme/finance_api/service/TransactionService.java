@@ -1,5 +1,6 @@
 package com.guilherme.finance_api.service;
 
+import com.guilherme.finance_api.dto.TransactionFilter;
 import com.guilherme.finance_api.dto.TransactionRequest;
 import com.guilherme.finance_api.dto.TransactionResponse;
 import com.guilherme.finance_api.entity.Category;
@@ -9,13 +10,16 @@ import com.guilherme.finance_api.exception.ResourceNotFoundException;
 import com.guilherme.finance_api.repository.CategoryRepository;
 import com.guilherme.finance_api.repository.TransactionRepository;
 import com.guilherme.finance_api.repository.UserRepository;
+import com.guilherme.finance_api.specification.TransactionSpecification;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.data.domain.Pageable;
+
 
 @Data
 @Service
@@ -25,11 +29,21 @@ public class TransactionService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
 
-    public List<TransactionResponse> findAll() {
-        return transactionRepository.findAll()
-                .stream()
-                .map(transaction -> toResponse(transaction))
-                .collect(Collectors.toList());
+    public Page<TransactionResponse> findAll(TransactionFilter filter, Pageable pageable) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Specification<Transaction> spec = Specification.<Transaction>unrestricted()
+                .and(TransactionSpecification.hasUser(user.getId()))
+                .and(TransactionSpecification.hasCategory(filter.categoryId()))
+                .and(TransactionSpecification.hasType(filter.type()))
+                .and(TransactionSpecification.dateBetween(filter.startDate(), filter.endDate()))
+                .and(TransactionSpecification.amountBetween(filter.minValue(), filter.maxValue()))
+                .and(TransactionSpecification.descriptionContains(filter.description()));
+
+        return transactionRepository.findAll(spec, pageable)
+                .map(this::toResponse);
     }
 
     public TransactionResponse findById(Long id) {
