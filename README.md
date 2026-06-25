@@ -6,6 +6,7 @@
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker)
 ![JWT](https://img.shields.io/badge/Auth-JWT-black?logo=jsonwebtokens)
 ![Swagger](https://img.shields.io/badge/Docs-Swagger-85EA2D?logo=swagger)
+![CI](https://github.com/gothsins/finance-api/actions/workflows/ci.yml/badge.svg)
 
 API REST para controle de finanças pessoais, desenvolvida em **Java 17** com **Spring Boot**. Permite que cada usuário gerencie suas próprias transações financeiras e categorias, com autenticação segura via **JWT**.
 
