@@ -8,7 +8,7 @@
 ![Swagger](https://img.shields.io/badge/Docs-Swagger-85EA2D?logo=swagger)
 ![CI](https://github.com/gothsins/finance-api/actions/workflows/ci.yml/badge.svg)
 
-API REST para controle de finanças pessoais, desenvolvida em **Java 17** com **Spring Boot**. Permite que cada usuário gerencie suas próprias transações financeiras e categorias, com autenticação segura via **JWT**.
+API REST para controle de finanças pessoais, desenvolvida em **Java 21** com **Spring Boot**. Permite que cada usuário gerencie suas próprias transações financeiras e categorias, com autenticação segura via **JWT**.
 
 ## Visão geral
 
@@ -24,7 +24,7 @@ O projeto foi estruturado em camadas (Controller, Service, Repository) seguindo 
 
 ## Stack
 
-- Java 17
+- Java 21
 - Spring Boot
 - Spring Data JPA / Hibernate
 - Spring Security + JWT
@@ -87,11 +87,28 @@ erDiagram
 
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| GET | `/transactions` | Lista as transações do usuário autenticado |
+| GET | `/transactions` | Lista transações com filtros dinâmicos e paginação |
 | GET | `/transactions/{id}` | Busca uma transação específica |
 | POST | `/transactions` | Cria uma nova transação |
 | PUT | `/transactions/{id}` | Atualiza uma transação existente |
 | DELETE | `/transactions/{id}` | Remove uma transação |
+
+**Filtros disponíveis no `GET /transactions`:**
+
+| Parâmetro | Tipo | Exemplo |
+|---|---|---|
+| `categoryId` | Long | `1` |
+| `type` | INCOME \| EXPENSE | `EXPENSE` |
+| `startDate` | YYYY-MM-DD | `2026-01-01` |
+| `endDate` | YYYY-MM-DD | `2026-06-30` |
+| `minValue` | Decimal | `50.00` |
+| `maxValue` | Decimal | `500.00` |
+| `description` | String | `almoço` |
+| `page` | Int | `0` |
+| `size` | Int | `10` |
+| `sort` | campo,direção | `date,desc` |
+
+O retorno é paginado (`Page<TransactionResponse>`) com `totalElements`, `totalPages` e `content`.
 
 > Todos os endpoints (exceto `/auth/**`) exigem um token JWT válido no header `Authorization: Bearer <token>`.
 
@@ -124,7 +141,7 @@ Senhas são armazenadas com hash via `BCryptPasswordEncoder`.
 
 ## Testes
 
-O projeto conta com testes unitários utilizando **JUnit 5** e **Mockito**, cobrindo os principais cenários de sucesso e erro da camada de serviço.
+O projeto conta com testes unitários (**JUnit 5 + Mockito**) cobrindo a camada de serviço, e testes de integração (**@DataJpaTest + H2**) validando os filtros dinâmicos da `TransactionSpecification` contra um banco em memória.
 
 ```bash
 ./mvnw test
@@ -156,7 +173,6 @@ Configure as variáveis de ambiente do banco de dados (veja `application-example
 ```bash
 ./mvnw spring-boot:run
 ```
-
 ## Status do projeto
 
-CRUD completo para `Category` e `Transaction`, com autenticação JWT, validações, testes unitários, documentação Swagger e containerização Docker. Próximas melhorias incluem filtros de busca (por categoria, período, tipo) e endpoint de resumo financeiro agregado.
+CRUD completo para `Category` e `Transaction`, com autenticação JWT, filtros dinâmicos e paginação via JPA Specifications, testes unitários e de integração, documentação Swagger, containerização Docker e CI via GitHub Actions. Integrado ao [finance-batch](https://github.com/gothsins/finance-batch) para importação em massa de transações via CSV.
