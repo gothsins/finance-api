@@ -6,6 +6,8 @@ import com.guilherme.finance_api.dto.TransactionResponse;
 import com.guilherme.finance_api.entity.Category;
 import com.guilherme.finance_api.entity.Transaction;
 import com.guilherme.finance_api.entity.User;
+import com.guilherme.finance_api.event.TransactionEvent;
+import com.guilherme.finance_api.event.TransactionPublisher;
 import com.guilherme.finance_api.exception.ResourceNotFoundException;
 import com.guilherme.finance_api.repository.CategoryRepository;
 import com.guilherme.finance_api.repository.TransactionRepository;
@@ -28,6 +30,7 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final TransactionPublisher transactionPublisher;
 
     public Page<TransactionResponse> findAll(TransactionFilter filter, Pageable pageable) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -97,6 +100,17 @@ public class TransactionService {
         transaction.setCategory(category);
 
         Transaction savedTransaction = transactionRepository.save(transaction);
+
+        TransactionEvent event = new TransactionEvent(
+                savedTransaction.getId(),
+                savedTransaction.getDescription(),
+                savedTransaction.getAmount(),
+                savedTransaction.getDate(),
+                savedTransaction.getType().name(),
+                savedTransaction.getUser().getEmail(),
+                savedTransaction.getCategory() != null ? savedTransaction.getCategory().getName() : null
+        );
+        transactionPublisher.publish(event);
         return toResponse(savedTransaction);
     }
 
