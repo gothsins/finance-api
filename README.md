@@ -6,6 +6,7 @@
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker)
 ![JWT](https://img.shields.io/badge/Auth-JWT-black?logo=jsonwebtokens)
 ![Swagger](https://img.shields.io/badge/Docs-Swagger-85EA2D?logo=swagger)
+![RabbitMQ](https://img.shields.io/badge/RabbitMQ-3-orange?logo=rabbitmq)
 ![CI](https://github.com/gothsins/finance-api/actions/workflows/ci.yml/badge.svg)
 
 API REST para controle de finanças pessoais, desenvolvida em **Java 21** com **Spring Boot**. Permite que cada usuário gerencie suas próprias transações financeiras e categorias, com autenticação segura via **JWT**.
@@ -21,6 +22,7 @@ O projeto foi estruturado em camadas (Controller, Service, Repository) seguindo 
 - Testes unitários com **JUnit 5 + Mockito**
 - Containerização completa com **Docker** e **Docker Compose**
 - Uso de **DTOs** de entrada (`Request`) e saída (`Response`) para desacoplar a API da camada de persistência e expor apenas os dados necessários
+- Arquitetura orientada a eventos com **RabbitMQ** — publica eventos de transações para o [finance-notifications](https://github.com/gothsins/finance-notifications)
 
 ## Stack
 
@@ -34,13 +36,14 @@ O projeto foi estruturado em camadas (Controller, Service, Repository) seguindo 
 - JUnit 5 / Mockito
 - Springdoc OpenAPI (Swagger)
 - Docker / Docker Compose
+- Spring AMQP (RabbitMQ)
 
 ## Modelo de dados
 
 Cada usuário possui suas próprias transações e categorias. Toda transação pertence a um usuário e está associada a uma categoria.
 
 ```mermaid
-erDiagram
+UserDiagram
   USER ||--o{ TRANSACTION : owns
   USER ||--o{ CATEGORY : owns
   CATEGORY ||--o{ TRANSACTION : classifies
@@ -173,6 +176,21 @@ Configure as variáveis de ambiente do banco de dados (veja `application-example
 ```bash
 ./mvnw spring-boot:run
 ```
+
+## Integração com finance-notifications
+
+Ao criar uma transação (`POST /transactions`), o finance-api publica automaticamente um `TransactionEvent` na fila RabbitMQ. O serviço [finance-notifications](https://github.com/gothsins/finance-notifications) consome esse evento e processa a notificação em tempo real de forma assíncrona.
+
+```
+POST /transactions
+      ↓
+ Salva no banco
+      ↓
+ Publica TransactionEvent
+      ↓
+ RabbitMQ → finance-notifications
+```
+
 ## Status do projeto
 
-CRUD completo para `Category` e `Transaction`, com autenticação JWT, filtros dinâmicos e paginação via JPA Specifications, testes unitários e de integração, documentação Swagger, containerização Docker e CI via GitHub Actions. Integrado ao [finance-batch](https://github.com/gothsins/finance-batch) para importação em massa de transações via CSV.
+CRUD completo para `Category` e `Transaction`, com autenticação JWT, filtros dinâmicos e paginação via JPA Specifications, testes unitários e de integração, documentação Swagger, containerização Docker, CI via GitHub Actions e integração assíncrona com [finance-notifications](https://github.com/gothsins/finance-notifications) via RabbitMQ. Integrado ao [finance-batch](https://github.com/gothsins/finance-batch) para importação em massa de transações via CSV.
