@@ -7,7 +7,9 @@
 ![JWT](https://img.shields.io/badge/Auth-JWT-black?logo=jsonwebtokens)
 ![Swagger](https://img.shields.io/badge/Docs-Swagger-85EA2D?logo=swagger)
 ![RabbitMQ](https://img.shields.io/badge/RabbitMQ-3-orange?logo=rabbitmq)
+![Redis](https://img.shields.io/badge/Redis-7-red?logo=redis)
 ![CI](https://github.com/gothsins/finance-api/actions/workflows/ci.yml/badge.svg)
+
 
 API REST para controle de finanças pessoais, desenvolvida em **Java 21** com **Spring Boot**. Permite que cada usuário gerencie suas próprias transações financeiras e categorias, com autenticação segura via **JWT**.
 
@@ -23,6 +25,7 @@ O projeto foi estruturado em camadas (Controller, Service, Repository) seguindo 
 - Containerização completa com **Docker** e **Docker Compose**
 - Uso de **DTOs** de entrada (`Request`) e saída (`Response`) para desacoplar a API da camada de persistência e expor apenas os dados necessários
 - Arquitetura orientada a eventos com **RabbitMQ** — publica eventos de transações para o [finance-notifications](https://github.com/gothsins/finance-notifications)
+- Cache de resultados com **Redis** para otimização de consultas agregadas
 
 ## Stack
 
@@ -37,6 +40,7 @@ O projeto foi estruturado em camadas (Controller, Service, Repository) seguindo 
 - Springdoc OpenAPI (Swagger)
 - Docker / Docker Compose
 - Spring AMQP (RabbitMQ)
+- Spring Cache + Redis
 
 ## Modelo de dados
 
@@ -92,6 +96,7 @@ UserDiagram
 |--------|----------|-----------|
 | GET | `/transactions` | Lista transações com filtros dinâmicos e paginação |
 | GET | `/transactions/{id}` | Busca uma transação específica |
+| GET | `/transactions/summary` | Retorna resumo financeiro do mês (cacheado no Redis) |
 | POST | `/transactions` | Cria uma nova transação |
 | PUT | `/transactions/{id}` | Atualiza uma transação existente |
 | DELETE | `/transactions/{id}` | Remove uma transação |
@@ -191,6 +196,10 @@ POST /transactions
  RabbitMQ → finance-notifications
 ```
 
+## Cache com Redis
+
+O endpoint `GET /transactions/summary` utiliza Redis como cache com TTL de 5 minutos. Na primeira requisição os dados são calculados e salvos no Redis. Nas requisições seguintes o resultado é retornado diretamente do cache sem consultar o banco. Ao criar uma nova transação o cache é invalidado automaticamente via `@CacheEvict`.
+
 ## Status do projeto
 
-CRUD completo para `Category` e `Transaction`, com autenticação JWT, filtros dinâmicos e paginação via JPA Specifications, testes unitários e de integração, documentação Swagger, containerização Docker, CI via GitHub Actions e integração assíncrona com [finance-notifications](https://github.com/gothsins/finance-notifications) via RabbitMQ. Integrado ao [finance-batch](https://github.com/gothsins/finance-batch) para importação em massa de transações via CSV.
+CRUD completo para `Category` e `Transaction`, com autenticação JWT, filtros dinâmicos e paginação via JPA Specifications, cache Redis no endpoint de resumo financeiro, testes unitários e de integração, documentação Swagger, containerização Docker, CI via GitHub Actions, integração assíncrona com [finance-notifications](https://github.com/gothsins/finance-notifications) via RabbitMQ e importação em massa via [finance-batch](https://github.com/gothsins/finance-batch).
