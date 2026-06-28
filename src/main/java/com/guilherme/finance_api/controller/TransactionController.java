@@ -3,6 +3,7 @@ package com.guilherme.finance_api.controller;
 import com.guilherme.finance_api.dto.TransactionFilter;
 import com.guilherme.finance_api.dto.TransactionRequest;
 import com.guilherme.finance_api.dto.TransactionResponse;
+import com.guilherme.finance_api.dto.TransactionSummary;
 import com.guilherme.finance_api.entity.TransactionType;
 import com.guilherme.finance_api.service.TransactionService;
 import jakarta.validation.Valid;
@@ -13,6 +14,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.data.domain.Pageable;
@@ -58,6 +60,15 @@ public class TransactionController {
     public ResponseEntity<TransactionResponse> save(@Valid @RequestBody TransactionRequest request) {
         TransactionResponse savedTransaction = transactionService.save(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedTransaction);
+    }
+
+    @GetMapping("/summary")
+    public ResponseEntity<TransactionSummary> getSummary(
+            @RequestParam(required = false) String month) {
+        String email = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+        return ResponseEntity.ok(transactionService.getSummary(month, email));
     }
 
     @DeleteMapping("/{id}")

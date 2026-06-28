@@ -3,8 +3,10 @@ package com.guilherme.finance_api.service;
 import com.guilherme.finance_api.dto.TransactionFilter;
 import com.guilherme.finance_api.dto.TransactionRequest;
 import com.guilherme.finance_api.dto.TransactionResponse;
+import com.guilherme.finance_api.dto.TransactionSummary;
 import com.guilherme.finance_api.entity.Category;
 import com.guilherme.finance_api.entity.Transaction;
+import com.guilherme.finance_api.entity.TransactionType;
 import com.guilherme.finance_api.entity.User;
 import com.guilherme.finance_api.event.TransactionEvent;
 import com.guilherme.finance_api.event.TransactionPublisher;
@@ -13,14 +15,22 @@ import com.guilherme.finance_api.repository.CategoryRepository;
 import com.guilherme.finance_api.repository.TransactionRepository;
 import com.guilherme.finance_api.repository.UserRepository;
 import com.guilherme.finance_api.specification.TransactionSpecification;
+import org.springframework.cache.annotation.Cacheable;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import org.springframework.data.domain.Pageable;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 
 @Data
@@ -80,6 +90,7 @@ public class TransactionService {
         return toResponse(savedTransaction);
     }
 
+    @CacheEvict(value = "transaction-summary", allEntries = true)
     public TransactionResponse save(TransactionRequest request) {
         Transaction transaction = new Transaction();
         transaction.setDescription(request.getDescription());
@@ -112,6 +123,42 @@ public class TransactionService {
         );
         transactionPublisher.publish(event);
         return toResponse(savedTransaction);
+    }
+
+    @Cacheable(value = "transaction-summary", key = "#month ?: 'current' + '::' + #email")
+    public TransactionSummary getSummary(String month, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        YearMonth yearMonth = month != null
+                ? YearMonth.parse(month)
+                : YearMonth.now();
+
+        LocalDate start = yearMonth.atDay(1);
+        LocalDate end = yearMonth.atEndOfMonth();
+
+        Specification<Transaction> spec = Specification.<Transaction>unrestricted()
+                .and(TransactionSpecification.hasUser(user.getId()))
+                .and(TransactionSpecification.dateBetween(start, end));
+
+        List<Transaction> transactions = transactionRepository.findAll(spec);
+
+        BigDecimal totalIncome = transactions.stream()
+                .filter(t -> t.getType() == TransactionType.INCOME)
+                .map(Transaction::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalExpense = transactions.stream()
+                .filter(t -> t.getType() == TransactionType.EXPENSE)
+                .map(Transaction::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return new TransactionSummary(
+                totalIncome,
+                totalExpense,
+                totalIncome.subtract(totalExpense),
+                yearMonth.format(DateTimeFormatter.ofPattern("yyyy-MM"))
+        );
     }
 
     public void delete(Long id) {
