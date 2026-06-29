@@ -47,7 +47,7 @@ O projeto foi estruturado em camadas (Controller, Service, Repository) seguindo 
 Cada usuário possui suas próprias transações e categorias. Toda transação pertence a um usuário e está associada a uma categoria.
 
 ```mermaid
-UserDiagram
+erDiagram
   USER ||--o{ TRANSACTION : owns
   USER ||--o{ CATEGORY : owns
   CATEGORY ||--o{ TRANSACTION : classifies
