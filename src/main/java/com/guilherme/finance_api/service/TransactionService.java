@@ -60,7 +60,9 @@ public class TransactionService {
     }
 
     public TransactionResponse findById(Long id) {
-        Transaction transaction = transactionRepository.findById(id)
+        User user = getAuthenticatedUser();
+        // Busca a transação somente se ela pertencer ao usuário autenticado.
+        Transaction transaction = transactionRepository.findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
         return toResponse(transaction);
     }
@@ -78,13 +80,15 @@ public class TransactionService {
     }
 
     public TransactionResponse update(Long id, TransactionRequest request) {
-        Transaction transactionExist = transactionRepository.findById(id)
+        User user = getAuthenticatedUser();
+        // Garante que só o dono possa alterar a transação.
+        Transaction transactionExist = transactionRepository.findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
         transactionExist.setDescription(request.getDescription());
         transactionExist.setAmount(request.getAmount());
         transactionExist.setDate(request.getDate());
         transactionExist.setType(request.getType());
-        transactionExist.setCategory(categoryRepository.findById(request.getCategoryId())
+        transactionExist.setCategory(categoryRepository.findByIdAndUserId(request.getCategoryId(), user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found")));
         Transaction savedTransaction = transactionRepository.save(transactionExist);
         return toResponse(savedTransaction);
@@ -98,13 +102,10 @@ public class TransactionService {
         transaction.setDate(request.getDate());
         transaction.setType(request.getType());
 
-        String email = SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = getAuthenticatedUser();
 
-        Category category = categoryRepository.findById(request.getCategoryId())
+        // Valida se a categoria pertence ao usuário antes de salvar a transação.
+        Category category = categoryRepository.findByIdAndUserId(request.getCategoryId(), user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
         transaction.setUser(user);
@@ -162,9 +163,19 @@ public class TransactionService {
     }
 
     public void delete(Long id) {
-        if (!transactionRepository.existsById(id)) {
+        User user = getAuthenticatedUser();
+        // Só permite excluir transações do usuário autenticado.
+        if (!transactionRepository.existsByIdAndUserId(id, user.getId())) {
             throw new ResourceNotFoundException("Transaction not found");
         }
         transactionRepository.deleteById(id);
+    }
+
+    private User getAuthenticatedUser() {
+        String email = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 }
