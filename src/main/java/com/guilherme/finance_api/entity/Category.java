@@ -1,6 +1,7 @@
 package com.guilherme.finance_api.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -14,5 +15,12 @@ public class Category {
     private Long id;
 
     private String name;
+
+    // Cada categoria pertence a um usuário específico.
+    // A coluna user_id garante isolamento entre contas.
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private User user;
 
 }
