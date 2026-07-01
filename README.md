@@ -10,6 +10,11 @@
 ![Redis](https://img.shields.io/badge/Redis-7-red?logo=redis)
 ![CI](https://github.com/gothsins/finance-api/actions/workflows/ci.yml/badge.svg)
 
+## 🚀 Demo em produção
+
+API disponível em: **https://finance-api-production-7f22.up.railway.app**
+
+Documentação interativa: **https://finance-api-production-7f22.up.railway.app/swagger-ui/index.html**
 
 API REST para controle de finanças pessoais, desenvolvida em **Java 21** com **Spring Boot**. Permite que cada usuário gerencie suas próprias transações financeiras e categorias, com autenticação segura via **JWT**.
 
@@ -156,6 +161,12 @@ O projeto conta com testes unitários (**JUnit 5 + Mockito**) cobrindo a camada 
 ```
 
 ## Como executar
+
+### Opção 0 — Produção (sem instalação)
+
+A API está deployada e disponível publicamente. Acesse a documentação interativa para testar todos os endpoints:
+
+https://finance-api-production-7f22.up.railway.app/swagger-ui/index.html
 
 ### Opção 1 — Docker (recomendado)
 
